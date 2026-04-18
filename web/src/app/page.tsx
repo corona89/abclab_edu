@@ -42,7 +42,7 @@ export default function Home() {
     };
 
     const initialMessages: UIMessage[] = [];
-    for (const msg of (msgData.data ?? []).reverse()) {
+    for (const msg of (msgData.data ?? [])) {
       initialMessages.push({
         id: `${msg.id}_user`,
         role: "user",
@@ -94,6 +94,7 @@ export default function Home() {
           initialMessages={session.initialMessages}
           onMessageSent={handleMessageSent}
           sendRef={chatSendRef}
+          onUpdateInfoClick={() => setShowUpdateModal(true)}
         />
       </div>
 

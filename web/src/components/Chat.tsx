@@ -1,17 +1,20 @@
 "use client";
 
 import { useChat, type UIMessage } from "@ai-sdk/react";
-import { useEffect, useRef } from "react";
-import DOMPurify from "dompurify";
+import { useEffect, useRef, useCallback } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 interface ChatProps {
   chatId: string;
   initialMessages?: UIMessage[];
   onMessageSent?: () => void;
   sendRef?: React.MutableRefObject<((text: string) => void) | null>;
+  onUpdateInfoClick?: () => void;
 }
 
-export default function Chat({ chatId, initialMessages, onMessageSent, sendRef }: ChatProps) {
+export default function Chat({ chatId, initialMessages, onMessageSent, sendRef, onUpdateInfoClick }: ChatProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -26,9 +29,137 @@ export default function Chat({ chatId, initialMessages, onMessageSent, sendRef }
     if (sendRef) sendRef.current = (text: string) => { sendMessage({ text }); onMessageSent?.(); };
   }, [sendMessage, sendRef, onMessageSent]);
 
+  // 마크다운 패턴을 버튼으로 변환하고 마크다운 렌더링
+  const renderAssistantMessage = useCallback((text: string) => {
+    // [현행화하기] 패턴을 HTML 버튼으로 변환
+    const buttonHtml = '<button class="update-info-btn rounded-lg bg-zinc-900 hover:bg-zinc-700 dark:bg-zinc-100 dark:hover:bg-zinc-300 dark:text-black text-white px-4 py-2 text-sm font-medium transition-colors">현행화하기</button>';
+    const converted = text.replace(/\[현행화하기\]/gi, buttonHtml);
+    
+    return (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
+        components={{
+          // 코드 블록 스타일
+          code({ className, children, ...props }) {
+            const isInline = !className;
+            if (isInline) {
+              return (
+                <code className="bg-zinc-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded text-sm font-mono">
+                  {children}
+                </code>
+              );
+            }
+            return (
+              <pre className="bg-zinc-800 text-zinc-100 p-4 rounded-lg overflow-x-auto my-2">
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              </pre>
+            );
+          },
+          // 리스트 스타일
+          ul({ children, ...props }) {
+            return <ul className="list-disc list-inside space-y-1 my-2" {...props}>{children}</ul>;
+          },
+          ol({ children, ...props }) {
+            return <ol className="list-decimal list-inside space-y-1 my-2" {...props}>{children}</ol>;
+          },
+          // 링크 스타일
+          a({ href, children, ...props }) {
+            return (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 hover:underline"
+                {...props}
+              >
+                {children}
+              </a>
+            );
+          },
+          // 테이블 스타일
+          table({ children, ...props }) {
+            return (
+              <div className="overflow-x-auto my-2">
+                <table className="min-w-full border-collapse border border-zinc-300 dark:border-zinc-700">
+                  {children}
+                </table>
+              </div>
+            );
+          },
+          th({ children, ...props }) {
+            return (
+              <th className="border border-zinc-300 dark:border-zinc-700 px-3 py-2 bg-zinc-100 dark:bg-zinc-800 font-semibold" {...props}>
+                {children}
+              </th>
+            );
+          },
+          td({ children, ...props }) {
+            return (
+              <td className="border border-zinc-300 dark:border-zinc-700 px-3 py-2" {...props}>
+                {children}
+              </td>
+            );
+          },
+          // 강조 스타일
+          strong({ children, ...props }) {
+            return <strong className="font-semibold" {...props}>{children}</strong>;
+          },
+          em({ children, ...props }) {
+            return <em className="italic" {...props}>{children}</em>;
+          },
+          // 인용구 스타일
+          blockquote({ children, ...props }) {
+            return (
+              <blockquote className="border-l-4 border-zinc-300 dark:border-zinc-700 pl-4 my-2 italic text-zinc-600 dark:text-zinc-400" {...props}>
+                {children}
+              </blockquote>
+            );
+          },
+          // 수평선 스타일
+          hr({ ...props }) {
+            return <hr className="my-4 border-zinc-300 dark:border-zinc-700" {...props} />;
+          },
+          // 제목 스타일
+          h1({ children, ...props }) {
+            return <h1 className="text-xl font-bold my-3" {...props}>{children}</h1>;
+          },
+          h2({ children, ...props }) {
+            return <h2 className="text-lg font-bold my-2" {...props}>{children}</h2>;
+          },
+          h3({ children, ...props }) {
+            return <h3 className="text-base font-semibold my-2" {...props}>{children}</h3>;
+          },
+          p({ children, ...props }) {
+            return <p className="my-2" {...props}>{children}</p>;
+          },
+        }}
+      >
+        {converted}
+      </ReactMarkdown>
+    );
+  }, []);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // 버튼 클릭 이벤트 바인딩 (DOM 렌더링 후 실행)
+  useEffect(() => {
+    const buttons = document.querySelectorAll(".update-info-btn");
+    buttons.forEach(btn => {
+      // 기존 리스너 제거 (중복 방지)
+      const newBtn = btn.cloneNode(true) as HTMLElement;
+      btn.parentNode?.replaceChild(newBtn, btn);
+      
+      // 새 버튼에 이벤트 리스너 추가
+      newBtn.addEventListener("click", () => {
+        onUpdateInfoClick?.();
+      });
+    });
+  }, [messages, onUpdateInfoClick]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -55,13 +186,17 @@ export default function Chat({ chatId, initialMessages, onMessageSent, sendRef }
           </div>
         )}
 
-        {messages.map((m) => {
+        {messages.map((m, index) => {
           const text = m.parts
             .filter((p) => p.type === "text")
             .map((p) => ("text" in p ? p.text : ""))
             .join("");
 
-          if (!text && m.role !== "assistant") return null;
+          // 마지막 메시지가 assistant 이고 스트리밍 중이면 로딩 표시
+          const isLastAssistant = index === messages.length - 1 && m.role === "assistant";
+          const isStreaming = isLastAssistant && status === "streaming";
+
+          if (!text && m.role !== "assistant" && !isStreaming) return null;
 
           return (
             <div
@@ -76,16 +211,16 @@ export default function Chat({ chatId, initialMessages, onMessageSent, sendRef }
                 }`}
               >
                 {m.role === "assistant" && text ? (
-                  <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(text) }} />
-                ) : text ? (
-                  text
-                ) : (
+                  renderAssistantMessage(text)
+                ) : isStreaming ? (
                   <span className="flex gap-1 items-center py-1">
                     <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce [animation-delay:0ms]" />
                     <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce [animation-delay:150ms]" />
                     <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce [animation-delay:300ms]" />
                   </span>
-                )}
+                ) : text ? (
+                  text
+                ) : null}
               </div>
             </div>
           );

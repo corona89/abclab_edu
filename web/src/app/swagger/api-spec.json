@@ -1,0 +1,842 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "AI:ON-U API 테스트 가이드",
+    "description": "Agent API 와 Knowledge API 를 테스트할 수 있는 Swagger UI 입니다.\n\n## 사용 방법\n1. 상단 `Authorize` 버튼 클릭\n2. `Bearer Token` 입력 (API 키 입력)\n3. API 엔드포인트 선택 후 `Try it out` 클릭\n4. 파라미터 입력 후 `Execute` 클릭\n\n## 환경 변수\n- Agent API: `AIONU_API_ENDPOINT`, `AIONU_API_KEY`\n- Knowledge API: `AIONU_KNOWLEDGE_API_KEY`, `AIONU_DATASET_ID`, `AIONU_DOCUMENT_ID`",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.abclab.ktds.com/v1",
+      "description": "AI:ON-U API 서버"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "API 키를 Bearer 토큰으로 입력하세요.\n\nAgent API 키: app-...\nKnowledge API 키: dataset-..."
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/chat-messages": {
+      "post": {
+        "tags": ["Agent API - 채팅"],
+        "summary": "채팅 메시지 전송",
+        "description": "사용자의 질문을 전송하고 AI 의 응답을 받습니다.\n\n**주의**: chat 모드에서는 `blocking` 모드를 지원하지 않습니다.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["query", "user", "response_mode"],
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "description": "사용자의 질문",
+                    "example": "KT 통화비서에 대해 알려줘"
+                  },
+                  "inputs": {
+                    "type": "object",
+                    "description": "앱에서 사전 정의한 변수",
+                    "example": {}
+                  },
+                  "response_mode": {
+                    "type": "string",
+                    "enum": ["streaming", "blocking"],
+                    "description": "응답 모드 (chat 모드에서는 streaming 만 지원)",
+                    "example": "streaming"
+                  },
+                  "conversation_id": {
+                    "type": "string",
+                    "description": "대화 ID (비우면 새 대화 생성)",
+                    "example": ""
+                  },
+                  "user": {
+                    "type": "string",
+                    "description": "사용자 ID (고유 값)",
+                    "example": "web-user"
+                  },
+                  "auto_generate_name": {
+                    "type": "boolean",
+                    "description": "대화 제목 자동 생성",
+                    "example": false
+                  },
+                  "files": {
+                    "type": "array",
+                    "description": "이미지 파일 목록",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["image"],
+                          "example": "image"
+                        },
+                        "transfer_method": {
+                          "type": "string",
+                          "enum": ["remote_url", "local_file"],
+                          "example": "remote_url"
+                        },
+                        "url": {
+                          "type": "string",
+                          "example": "https://example.com/image.png"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "스트리밍 응답 (Server-Sent Events)",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "event: message\ndata: {\"event\": \"message\", \"answer\": \"...\"}\n\nevent: message_end\ndata: {\"event\": \"message_end\", ...}"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chat-messages/{task_id}/stop": {
+      "post": {
+        "tags": ["Agent API - 채팅"],
+        "summary": "진행 중인 채팅 중단",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "중단할 태스크 ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "user": {
+                    "type": "string",
+                    "example": "web-user"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "중단 성공"
+          }
+        }
+      }
+    },
+    "/conversations": {
+      "get": {
+        "tags": ["Agent API - 대화 관리"],
+        "summary": "대화 목록 조회",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "사용자 ID"
+          },
+          {
+            "name": "last_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "페이지네이션용 마지막 ID"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "한 페이지당 개수"
+          },
+          {
+            "name": "pinned",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "즐겨찾기만 조회"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "대화 목록",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "name": { "type": "string" },
+                          "created_at": { "type": "integer" }
+                        }
+                      }
+                    },
+                    "has_more": { "type": "boolean" },
+                    "limit": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/conversations/{conversation_id}/name": {
+      "post": {
+        "tags": ["Agent API - 대화 관리"],
+        "summary": "대화 제목 변경",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "새 대화 제목"
+                  },
+                  "auto_generate": {
+                    "type": "boolean",
+                    "example": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "제목 변경 성공"
+          }
+        }
+      }
+    },
+    "/conversations/{conversation_id}/messages": {
+      "get": {
+        "tags": ["Agent API - 대화 관리"],
+        "summary": "대화 메시지 히스토리 조회",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "first_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "메시지 히스토리",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "query": { "type": "string" },
+                          "answer": { "type": "string" },
+                          "created_at": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/upload": {
+      "post": {
+        "tags": ["Agent API - 파일"],
+        "summary": "이미지 파일 업로드",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "업로드할 이미지 파일 (png, jpg, jpeg, webp, gif)"
+                  },
+                  "user": {
+                    "type": "string",
+                    "example": "web-user"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "업로드 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "name": { "type": "string" },
+                    "size": { "type": "integer" },
+                    "url": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasets": {
+      "get": {
+        "tags": ["Knowledge API - 지식 관리"],
+        "summary": "지식 (Dataset) 목록 조회",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "dataset_name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "지식 목록",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "name": { "type": "string" },
+                          "description": { "type": "string" },
+                          "document_count": { "type": "integer" }
+                        }
+                      }
+                    },
+                    "total": { "type": "integer" },
+                    "page": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Knowledge API - 지식 관리"],
+        "summary": "지식 생성",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "새 지식"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "지식 설명"
+                  },
+                  "permission": {
+                    "type": "string",
+                    "enum": ["only_me", "all_team_members"],
+                    "example": "all_team_members"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "지식 생성 성공"
+          }
+        }
+      }
+    },
+    "/datasets/{dataset_id}/documents": {
+      "get": {
+        "tags": ["Knowledge API - 문서 관리"],
+        "summary": "문서 목록 조회",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "문서 목록"
+          }
+        }
+      }
+    },
+    "/datasets/{dataset_id}/documents/{document_id}/segments": {
+      "get": {
+        "tags": ["Knowledge API - 세그먼트"],
+        "summary": "세그먼트 목록 조회",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "세그먼트 목록",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "content": { "type": "string" },
+                          "keywords": { "type": "array", "items": { "type": "string" } }
+                        }
+                      }
+                    },
+                    "total": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Knowledge API - 세그먼트"],
+        "summary": "세그먼트 생성",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["segments"],
+                "properties": {
+                  "segments": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["content"],
+                      "properties": {
+                        "content": {
+                          "type": "string",
+                          "example": "이름: 홍길동\n팀: AI 혁신팀\n업무: AI 서비스 기획"
+                        },
+                        "answer": {
+                          "type": "string"
+                        },
+                        "keywords": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": ["홍길동", "AI 혁신팀"]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "세그먼트 생성 성공"
+          }
+        }
+      }
+    },
+    "/datasets/{dataset_id}/documents/{document_id}/segments/{segment_id}": {
+      "post": {
+        "tags": ["Knowledge API - 세그먼트"],
+        "summary": "세그먼트 업데이트",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "segment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["segments"],
+                "properties": {
+                  "segments": {
+                    "type": "object",
+                    "properties": {
+                      "content": {
+                        "type": "string",
+                        "example": "업데이트된 내용"
+                      },
+                      "keywords": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "enabled": {
+                        "type": "boolean",
+                        "example": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "세그먼트 업데이트 성공"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Knowledge API - 세그먼트"],
+        "summary": "세그먼트 삭제",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "segment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "삭제 성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "string",
+                      "example": "success"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/datasets/{dataset_id}/documents/{document_id}": {
+      "delete": {
+        "tags": ["Knowledge API - 문서 관리"],
+        "summary": "문서 삭제",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "삭제 성공"
+          }
+        }
+      }
+    },
+    "/parameters": {
+      "get": {
+        "tags": ["Agent API - 앱 정보"],
+        "summary": "앱 설정 조회",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "앱 설정",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "opening_statement": { "type": "string" },
+                    "suggested_questions": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    },
+                    "user_input_form": { "type": "array" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/meta": {
+      "get": {
+        "tags": ["Agent API - 앱 정보"],
+        "summary": "앱 메타데이터 조회",
+        "parameters": [
+          {
+            "name": "user",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "앱 메타데이터"
+          }
+        }
+      }
+    }
+  }
+}
