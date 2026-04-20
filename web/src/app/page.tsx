@@ -1,27 +1,29 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { generateId } from "ai";
-import AssistantChat from "@/components/AssistantChat";
+import { generateId, type UIMessage } from "ai";
+import Chat from "@/components/Chat";
 import ConversationSidebar from "@/components/ConversationSidebar";
 import UpdateInfoModal from "@/components/UpdateInfoModal";
 
 interface ChatSession {
   chatId: string;
   conversationId: string | null;
+  initialMessages: UIMessage[];
 }
 
 export default function Home() {
   const [session, setSession] = useState<ChatSession>(() => ({
     chatId: generateId(),
     conversationId: null,
+    initialMessages: [],
   }));
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const chatSendRef = useRef<((text: string) => void) | null>(null);
 
   const startNewChat = useCallback(() => {
-    setSession({ chatId: generateId(), conversationId: null });
+    setSession({ chatId: generateId(), conversationId: null, initialMessages: [] });
   }, []);
 
   const selectConversation = useCallback(async (conversationId: string) => {
@@ -32,7 +34,30 @@ export default function Home() {
       body: JSON.stringify({ conversationId }),
     });
     const { chatId } = await initRes.json() as { chatId: string };
-    setSession({ chatId, conversationId });
+
+    // 기존 대화 메시지 로드
+    const msgRes = await fetch(`/api/conversations/${conversationId}/messages?user=web-user`);
+    const msgData = await msgRes.json() as {
+      data: Array<{ id: string; query: string; answer: string }>;
+    };
+
+    const initialMessages: UIMessage[] = [];
+    for (const msg of (msgData.data ?? [])) {
+      initialMessages.push({
+        id: `${msg.id}_user`,
+        role: "user",
+        parts: [{ type: "text", text: msg.query }],
+      });
+      if (msg.answer) {
+        initialMessages.push({
+          id: `${msg.id}_assistant`,
+          role: "assistant",
+          parts: [{ type: "text", text: msg.answer }],
+        });
+      }
+    }
+
+    setSession({ chatId, conversationId, initialMessages });
   }, []);
 
   // 메시지 전송 후 사이드바 새로고침
@@ -63,9 +88,10 @@ export default function Home() {
             현행화하기
           </button>
         </div>
-        <AssistantChat
+        <Chat
           key={session.chatId}
           chatId={session.chatId}
+          initialMessages={session.initialMessages}
           onMessageSent={handleMessageSent}
           sendRef={chatSendRef}
           onUpdateInfoClick={() => setShowUpdateModal(true)}
