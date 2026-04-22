@@ -1,0 +1,202 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36" version="29.6.6">
+  <diagram id="api-flow" name="API Call Flow">
+    <mxGraphModel dx="2431" dy="1422" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1450" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#23272F;" value="AI:ON-U Next.js Chat — API 호출 흐름도" vertex="1">
+          <mxGeometry height="36" width="1520" x="40" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=12;fontColor=#6B7280;" value="Client (Browser) → Next.js Route Handlers → In-memory conversationStore → AI:ON-U Agent / Knowledge API" vertex="1">
+          <mxGeometry height="22" width="1520" x="40" y="44" as="geometry" />
+        </mxCell>
+        <mxCell id="col1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontStyle=1;fontSize=13;" value="Client (Browser)&#xa;React / useChat" vertex="1">
+          <mxGeometry height="50" width="300" x="40" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="col2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontStyle=1;fontSize=13;" value="Next.js Route Handlers&#xa;src/app/api/**" vertex="1">
+          <mxGeometry height="50" width="320" x="370" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="col3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontStyle=1;fontSize=13;" value="conversationStore&#xa;in-memory Map&lt;chatId, conversationId&gt;" vertex="1">
+          <mxGeometry height="50" width="260" x="720" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="col4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;fontStyle=1;fontSize=13;" value="AI:ON-U External APIs&#xa;Agent API · Knowledge API" vertex="1">
+          <mxGeometry height="50" width="550" x="1010" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="sec1bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;dashed=1;" value="" vertex="1">
+          <mxGeometry height="140" width="1520" x="40" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="sec1label" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=13;fontColor=#374151;" value="①  대화 목록 조회  /  Sidebar mount · refresh" vertex="1">
+          <mxGeometry height="24" width="600" x="56" y="158" as="geometry" />
+        </mxCell>
+        <mxCell id="s1c1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF2FB;strokeColor=#6C8EBF;fontSize=11;" value="ConversationSidebar&#xa;&lt;fetch /api/conversations&gt;" vertex="1">
+          <mxGeometry height="70" width="260" x="60" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="s1c2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDF5EB;strokeColor=#82B366;fontSize=11;" value="GET /api/conversations&#xa;?user · limit" vertex="1">
+          <mxGeometry height="70" width="300" x="380" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="s1c4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCEBEA;strokeColor=#B85450;fontSize=11;" value="GET /conversations&#xa;Authorization: Bearer AIONU_API_KEY" vertex="1">
+          <mxGeometry height="70" width="520" x="1020" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="s1e1" edge="1" parent="1" source="s1c1" style="endArrow=classic;html=1;rounded=0;strokeColor=#6C8EBF;strokeWidth=2;" target="s1c2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s1e2" edge="1" parent="1" source="s1c2" style="endArrow=classic;html=1;rounded=0;strokeColor=#82B366;strokeWidth=2;" target="s1c4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sec2bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;dashed=1;" value="" vertex="1">
+          <mxGeometry height="220" width="1520" x="40" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="sec2label" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=13;fontColor=#374151;" value="②  대화 선택 → chatId 매핑 + 이전 메시지 복원" vertex="1">
+          <mxGeometry height="24" width="600" x="56" y="318" as="geometry" />
+        </mxCell>
+        <mxCell id="s2c1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF2FB;strokeColor=#6C8EBF;fontSize=11;" value="page.selectConversation()&#xa;1) /api/chat/init&#xa;2) /api/conversations/:id/messages" vertex="1">
+          <mxGeometry height="150" width="260" x="60" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="s2c2a" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDF5EB;strokeColor=#82B366;fontSize=11;" value="POST /api/chat/init&#xa;{ conversationId }  →  { chatId }" vertex="1">
+          <mxGeometry height="60" width="300" x="380" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="s2c3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9E0;strokeColor=#D6B656;fontSize=11;" value="store.set(&#xa;  chatId, conversationId)" vertex="1">
+          <mxGeometry height="60" width="260" x="720" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="s2c2b" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDF5EB;strokeColor=#82B366;fontSize=11;" value="GET /api/conversations/:id/messages&#xa;?user" vertex="1">
+          <mxGeometry height="60" width="300" x="380" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="s2c4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCEBEA;strokeColor=#B85450;fontSize=11;" value="GET /messages&#xa;?conversation_id · user · limit=50" vertex="1">
+          <mxGeometry height="60" width="520" x="1020" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="s2e1" edge="1" parent="1" source="s2c1" style="endArrow=classic;html=1;rounded=0;strokeColor=#6C8EBF;strokeWidth=2;" target="s2c2a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s2e2" edge="1" parent="1" source="s2c2a" style="endArrow=classic;html=1;rounded=0;strokeColor=#D6B656;strokeWidth=2;" target="s2c3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s2e3" edge="1" parent="1" source="s2c1" style="endArrow=classic;html=1;rounded=0;strokeColor=#6C8EBF;strokeWidth=2;dashed=1;" target="s2c2b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s2e4" edge="1" parent="1" source="s2c2b" style="endArrow=classic;html=1;rounded=0;strokeColor=#82B366;strokeWidth=2;" target="s2c4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sec3bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;dashed=1;" value="" vertex="1">
+          <mxGeometry height="400" width="1520" x="40" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="sec3label" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=13;fontColor=#374151;" value="③  채팅 전송 / 스트리밍 (Server-Sent Events)" vertex="1">
+          <mxGeometry height="24" width="600" x="56" y="558" as="geometry" />
+        </mxCell>
+        <mxCell id="s3c1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF2FB;strokeColor=#6C8EBF;fontSize=11;" value="Chat.tsx · useChat.sendMessage({ text })&#xa;id: chatId" vertex="1">
+          <mxGeometry height="70" width="260" x="60" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="s3c2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDF5EB;strokeColor=#82B366;fontSize=11;" value="POST /api/chat&#xa;{ id, messages, user }&#xa;→ createUIMessageStream" vertex="1">
+          <mxGeometry height="70" width="300" x="380" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="s3c3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9E0;strokeColor=#D6B656;fontSize=11;" value="store.get(chatId)&#xa;→ conversationId (or &quot;&quot;)" vertex="1">
+          <mxGeometry height="70" width="260" x="720" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="s3c4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCEBEA;strokeColor=#B85450;fontSize=11;" value="POST /chat-messages&#xa;{ query, conversation_id, user, response_mode: &quot;streaming&quot; }" vertex="1">
+          <mxGeometry height="70" width="520" x="1020" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="s3r4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCEBEA;strokeColor=#B85450;fontSize=11;" value="SSE events (data: ...)&#xa;• agent_message / message  →  answer delta&#xa;• message_end  →  conversation_id" vertex="1">
+          <mxGeometry height="80" width="520" x="1020" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="s3r3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9E0;strokeColor=#D6B656;fontSize=11;" value="store.set(chatId, conversation_id)&#xa;(on message_end)" vertex="1">
+          <mxGeometry height="80" width="260" x="720" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="s3r2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDF5EB;strokeColor=#82B366;fontSize=11;" value="Parse lines · writer.write({&#xa;  type: &quot;text-start&quot; / &quot;text-delta&quot; / &quot;text-end&quot; })" vertex="1">
+          <mxGeometry height="80" width="300" x="380" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="s3r1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF2FB;strokeColor=#6C8EBF;fontSize=11;" value="Chat UI · streaming render&#xa;(ReactMarkdown + 현행화 button)" vertex="1">
+          <mxGeometry height="80" width="260" x="60" y="720" as="geometry" />
+        </mxCell>
+        <mxCell id="s3d1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF2FB;strokeColor=#6C8EBF;dashed=1;fontSize=11;" value="(new chat / reset)&#xa;fetch DELETE /api/chat { chatId }" vertex="1">
+          <mxGeometry height="60" width="260" x="60" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="s3d2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDF5EB;strokeColor=#82B366;dashed=1;fontSize=11;" value="DELETE /api/chat&#xa;store.delete(chatId)" vertex="1">
+          <mxGeometry height="60" width="300" x="380" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="s3d3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9E0;strokeColor=#D6B656;dashed=1;fontSize=11;" value="store.delete(chatId)" vertex="1">
+          <mxGeometry height="60" width="260" x="720" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="s3e1" edge="1" parent="1" source="s3c1" style="endArrow=classic;html=1;rounded=0;strokeColor=#6C8EBF;strokeWidth=2;" target="s3c2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s3e2" edge="1" parent="1" source="s3c2" style="endArrow=classic;html=1;rounded=0;strokeColor=#D6B656;strokeWidth=2;" target="s3c3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s3e3" edge="1" parent="1" source="s3c3" style="endArrow=classic;html=1;rounded=0;strokeColor=#82B366;strokeWidth=2;" target="s3c4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s3e4" edge="1" parent="1" source="s3c4" style="endArrow=classic;html=1;rounded=0;strokeColor=#B85450;strokeWidth=2;" target="s3r4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s3e5" edge="1" parent="1" source="s3r4" style="endArrow=classic;html=1;rounded=0;strokeColor=#D6B656;strokeWidth=2;" target="s3r3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s3e6" edge="1" parent="1" source="s3r4" style="endArrow=classic;html=1;rounded=0;strokeColor=#82B366;strokeWidth=2;" target="s3r2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s3e7" edge="1" parent="1" source="s3r2" style="endArrow=classic;html=1;rounded=0;strokeColor=#6C8EBF;strokeWidth=2;" target="s3r1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s3e8" edge="1" parent="1" source="s3d1" style="endArrow=classic;html=1;rounded=0;strokeColor=#6C8EBF;strokeWidth=2;dashed=1;" target="s3d2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s3e9" edge="1" parent="1" source="s3d2" style="endArrow=classic;html=1;rounded=0;strokeColor=#D6B656;strokeWidth=2;dashed=1;" target="s3d3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sec4bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#CCCCCC;dashed=1;" value="" vertex="1">
+          <mxGeometry height="360" width="1520" x="40" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="sec4label" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=13;fontColor=#374151;" value="④  내 정보 현행화 — 지식 세그먼트 upsert (find → delete → create)" vertex="1">
+          <mxGeometry height="24" width="700" x="56" y="978" as="geometry" />
+        </mxCell>
+        <mxCell id="s4c1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBF2FB;strokeColor=#6C8EBF;fontSize=11;" value="UpdateInfoModal.handleSave()&#xa;fetch POST /api/knowledge/segments&#xa;{ name, team, work }" vertex="1">
+          <mxGeometry height="260" width="260" x="60" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="s4c2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDF5EB;strokeColor=#82B366;fontSize=11;align=left;spacingLeft=8;" value="POST /api/knowledge/segments&#xa;&#xa;1) findSegmentByName(name)&#xa;2) if exists: deleteSegment(id)&#xa;3) createSegment(name, team, work)" vertex="1">
+          <mxGeometry height="260" width="300" x="380" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="s4k1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCEBEA;strokeColor=#B85450;fontSize=11;" value="GET /datasets/:DATASET_ID/documents/:DOCUMENT_ID/segments&#xa;(find by &quot;이름: {name}&quot;)" vertex="1">
+          <mxGeometry height="60" width="520" x="1020" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="s4k2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCEBEA;strokeColor=#B85450;fontSize=11;dashed=1;" value="DELETE /datasets/:DATASET_ID/documents/:DOCUMENT_ID/segments/:segmentId&#xa;(중복 세그먼트 제거 · 조건부)" vertex="1">
+          <mxGeometry height="60" width="520" x="1020" y="1110" as="geometry" />
+        </mxCell>
+        <mxCell id="s4k3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCEBEA;strokeColor=#B85450;fontSize=11;" value="POST /datasets/:DATASET_ID/documents/:DOCUMENT_ID/segments&#xa;{ segments: [{ content, keywords }] }" vertex="1">
+          <mxGeometry height="60" width="520" x="1020" y="1200" as="geometry" />
+        </mxCell>
+        <mxCell id="s4e1" edge="1" parent="1" source="s4c1" style="endArrow=classic;html=1;rounded=0;strokeColor=#6C8EBF;strokeWidth=2;" target="s4c2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s4e2" edge="1" parent="1" source="s4c2" style="endArrow=classic;html=1;rounded=0;strokeColor=#82B366;strokeWidth=2;" target="s4k1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s4e3" edge="1" parent="1" source="s4c2" style="endArrow=classic;html=1;rounded=0;strokeColor=#82B366;strokeWidth=2;dashed=1;" target="s4k2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="s4e4" edge="1" parent="1" source="s4c2" style="endArrow=classic;html=1;rounded=0;strokeColor=#82B366;strokeWidth=2;" target="s4k3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="legendbg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9CA3AF;" value="" vertex="1">
+          <mxGeometry height="80" width="1520" x="40" y="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="legendTitle" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=12;fontColor=#374151;" value="Legend" vertex="1">
+          <mxGeometry height="20" width="80" x="56" y="1358" as="geometry" />
+        </mxCell>
+        <mxCell id="lg1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontSize=11;" value="Client request" vertex="1">
+          <mxGeometry height="30" width="140" x="56" y="1385" as="geometry" />
+        </mxCell>
+        <mxCell id="lg2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;fontSize=11;" value="Next.js API route" vertex="1">
+          <mxGeometry height="30" width="160" x="216" y="1385" as="geometry" />
+        </mxCell>
+        <mxCell id="lg3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;fontSize=11;" value="In-memory store read/write" vertex="1">
+          <mxGeometry height="30" width="220" x="396" y="1385" as="geometry" />
+        </mxCell>
+        <mxCell id="lg4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F8CECC;strokeColor=#B85450;fontSize=11;" value="External AI:ON-U / Knowledge API" vertex="1">
+          <mxGeometry height="30" width="260" x="636" y="1385" as="geometry" />
+        </mxCell>
+        <mxCell id="lg5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6B7280;dashed=1;fontSize=11;" value="Conditional / cleanup (dashed)" vertex="1">
+          <mxGeometry height="30" width="240" x="916" y="1385" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
