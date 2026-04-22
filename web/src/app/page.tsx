@@ -5,6 +5,7 @@ import { generateId, type UIMessage } from "ai";
 import Chat from "@/components/Chat";
 import ConversationSidebar from "@/components/ConversationSidebar";
 import UpdateInfoModal from "@/components/UpdateInfoModal";
+import DeleteInfoModal from "@/components/DeleteInfoModal";
 
 interface ChatSession {
   chatId: string;
@@ -20,6 +21,7 @@ export default function Home() {
   }));
   const [sidebarRefresh, setSidebarRefresh] = useState(0);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const chatSendRef = useRef<((text: string) => void) | null>(null);
 
   const startNewChat = useCallback(() => {
@@ -87,6 +89,12 @@ export default function Home() {
           >
             현행화하기
           </button>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="rounded-lg border border-red-200 dark:border-red-700 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            담당자 삭제하기
+          </button>
         </div>
         <Chat
           key={session.chatId}
@@ -100,6 +108,14 @@ export default function Home() {
 
       {showUpdateModal && (
         <UpdateInfoModal onClose={() => setShowUpdateModal(false)} />
+      )}
+      {showDeleteModal && (
+        <DeleteInfoModal 
+          onClose={() => setShowDeleteModal(false)} 
+          onDeleted={() => {
+            setShowDeleteModal(false);
+          }} 
+        />
       )}
     </div>
   );

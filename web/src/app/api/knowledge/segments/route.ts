@@ -107,3 +107,50 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function DELETE(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const name = searchParams.get("name");
+
+  if (!name) {
+    return Response.json(
+      { message: "삭제할 담당자 이름이 필요합니다." },
+      { status: 400 }
+    );
+  }
+
+  try {
+    // 1. 이름으로 세그먼트 찾기
+    const segmentId = await findSegmentByName(name);
+
+    if (!segmentId) {
+      return Response.json(
+        { message: `이름 "${name}" 의 담당자를 찾을 수 없습니다.` },
+        { status: 404 }
+      );
+    }
+
+    // 2. 세그먼트 삭제
+    console.log(`세그먼트 삭제 중: ${segmentId} (이름: ${name})`);
+    const success = await deleteSegment(segmentId);
+
+    if (!success) {
+      return Response.json(
+        { message: "세그먼트 삭제에 실패했습니다." },
+        { status: 500 }
+      );
+    }
+
+    console.log(`세그먼트 삭제 완료: ${name}`);
+    return Response.json({ 
+      message: "삭제되었습니다.",
+      deletedName: name 
+    });
+  } catch (error) {
+    console.error("세그먼트 삭제 실패:", error);
+    return Response.json(
+      { message: "삭제에 실패했습니다.", error: String(error) },
+      { status: 500 }
+    );
+  }
+}
